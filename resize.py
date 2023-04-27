@@ -16,6 +16,7 @@ SIZES = [
 ]
 SUBDIRS = [
     'achievement',
+    'affix',
     'class',
     'currency',
     'enchantment',
@@ -68,6 +69,9 @@ def maybe_save(ids, img, outdir, prefix):
             pass
 
 
+
+base_path = os.path.join(os.path.abspath(os.path.expanduser(os.environ['WOWTHING_DUMP_PATH'])), 'enUS')
+
 # custom images
 for filename in sorted(os.listdir('raw')):
     filepath = os.path.join('raw', filename)
@@ -87,7 +91,6 @@ for filename in sorted(os.listdir('raw')):
 
 
 print('----')
-os.exit(0)
 
 
 existing = {}
@@ -104,7 +107,7 @@ filedata_ids = set()
 
 # Load achievement
 achievements = {}
-with open('achievement.csv', newline='') as csvfile:
+with open(os.path.join(base_path, os.path.join(base_path), 'achievement.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         achievements.setdefault(int(row['IconFileID']), []).append(int(row['ID']))
@@ -113,7 +116,7 @@ print('Loaded achievement')
 
 # Load battlepetspecies
 pets = {}
-with open('battlepetspecies.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'battlepetspecies.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         pets.setdefault(int(row['IconFileDataID']), []).append(int(row['CreatureID']))
@@ -122,7 +125,7 @@ print('Loaded battlepetspecies')
 
 # Load chrclasses
 classes = {}
-with open('chrclasses.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'chrclasses.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         id = int(row['ID'])
@@ -131,14 +134,21 @@ print(classes)
 
 # Load chrspecialization
 specs = {}
-with open('chrspecialization.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'chrspecialization.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         specs.setdefault(int(row['SpellIconFileID']), []).append(int(row['ID']))
 
+# load keystoneaffix
+affixes = {}
+with open(os.path.join(base_path, 'keystoneaffix.csv'), newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        affixes.setdefault(int(row['FiledataID']), []).append(int(row['ID']))
+
 # load spellmisc
 spells = {}
-with open('spellmisc.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'spellmisc.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         spell_id = int(row['SpellID'])
@@ -155,7 +165,7 @@ print('Loaded spellmisc')
 
 # load currencytypes
 currencies = {}
-with open('currencytypes.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'currencytypes.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         currencies.setdefault(int(row['InventoryIconFileID']), []).append(int(row['ID']))
@@ -164,7 +174,7 @@ print('Loaded currencytypes')
 
 # load garrtalent
 garrtalents = {}
-with open('garrtalent.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'garrtalent.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         garrtalents.setdefault(int(row['IconFileDataID']), []).append(int(row['ID']))
@@ -172,7 +182,7 @@ with open('garrtalent.csv', newline='') as csvfile:
 # load item
 items = {}
 item_to_filedata = {}
-with open('item.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'item.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         id = int(row['ID'])
@@ -185,7 +195,7 @@ print('Loaded item')
 
 # load itemappearance
 appearance_to_filedata = {}
-with open('itemappearance.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'itemappearance.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         id = int(row['ID'])
@@ -201,7 +211,7 @@ print('Loaded itemappearance')
 # load itemmodifiedappearance
 item_modified_appearances = {}
 
-with open('itemmodifiedappearance.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'itemmodifiedappearance.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         item_id = int(row['ItemID'])
@@ -240,7 +250,7 @@ print('Loaded itemmodifiedappearance')
 
 # load spellitemenchantment
 enchantments = {}
-with open('spellitemenchantment.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'spellitemenchantment.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         enchantments.setdefault(int(row['IconFileDataID']), []).append(int(row['ID']))
@@ -249,7 +259,7 @@ print('Loaded spellitemenchantment')
 
 # load toy
 toys = {}
-with open('toy.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'toy.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         item_id = int(row['ItemID'])
@@ -260,7 +270,7 @@ print('Loaded toy')
 
 # load filedata
 filedata = {}
-with open('manifestinterfacedata.csv', newline='') as csvfile:
+with open(os.path.join(base_path, 'manifestinterfacedata.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         id = int(row['ID'])
@@ -324,6 +334,9 @@ for filedata_id in filedata:
 
         if filedata_id in achievements:
             maybe_save(achievements[filedata_id], resized, size_str, 'achievement')
+
+        if filedata_id in affixes:
+            maybe_save(affixes[filedata_id], resized, size_str, 'affix')
 
         if filedata_id in classes:
             maybe_save(classes[filedata_id], resized, size_str, 'class')
