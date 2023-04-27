@@ -27,7 +27,7 @@ def recurse(path):
                 recurse(entry.path)
             elif entry.name.endswith('.png') and entry.is_symlink():
                 target = os.readlink(entry.path)
-                print(f'{entry.name} -> {target}')
+                # print(f'{entry.name} -> {target}')
                 try:
                     os.symlink(os.path.basename(target).replace('.png', '.webp'), entry.path.replace('.png', '.webp'))
                 except:
