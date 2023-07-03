@@ -26,6 +26,7 @@ SUBDIRS = [
     'npc',
     'spec',
     'spell',
+    'trait-node',
 ]
 
 
@@ -105,7 +106,7 @@ for size in SIZES:
 
 filedata_ids = set()
 
-# Load achievement
+# achievement
 achievements = {}
 with open(os.path.join(base_path, os.path.join(base_path), 'achievement.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -114,7 +115,7 @@ with open(os.path.join(base_path, os.path.join(base_path), 'achievement.csv'), n
 
 print('Loaded achievement')
 
-# Load battlepetspecies
+# battlepetspecies
 pets = {}
 with open(os.path.join(base_path, 'battlepetspecies.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -123,47 +124,26 @@ with open(os.path.join(base_path, 'battlepetspecies.csv'), newline='') as csvfil
 
 print('Loaded battlepetspecies')
 
-# Load chrclasses
+# chrclasses
 classes = {}
 with open(os.path.join(base_path, 'chrclasses.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         id = int(row['ID'])
         classes.setdefault(CLASS_OVERRIDE.get(id, int(row['IconFileDataID'])), []).append(id)
-print(classes)
 
-# Load chrspecialization
+print('Loaded chrclasses')
+
+# chrspecialization
 specs = {}
 with open(os.path.join(base_path, 'chrspecialization.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         specs.setdefault(int(row['SpellIconFileID']), []).append(int(row['ID']))
 
-# load keystoneaffix
-affixes = {}
-with open(os.path.join(base_path, 'keystoneaffix.csv'), newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        affixes.setdefault(int(row['FiledataID']), []).append(int(row['ID']))
+print('Loaded chrspecialization')
 
-# load spellmisc
-spells = {}
-with open(os.path.join(base_path, 'spellmisc.csv'), newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        spell_id = int(row['SpellID'])
-        if spell_id == 0:
-            continue
-        
-        filedata_id = int(row['SpellIconFileDataID'])
-        if filedata_id == 0:
-            continue
-
-        spells.setdefault(filedata_id, []).append(spell_id)
-
-print('Loaded spellmisc')
-
-# load currencytypes
+# currencytypes
 currencies = {}
 with open(os.path.join(base_path, 'currencytypes.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -172,14 +152,16 @@ with open(os.path.join(base_path, 'currencytypes.csv'), newline='') as csvfile:
 
 print('Loaded currencytypes')
 
-# load garrtalent
+# garrtalent
 garrtalents = {}
 with open(os.path.join(base_path, 'garrtalent.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         garrtalents.setdefault(int(row['IconFileDataID']), []).append(int(row['ID']))
 
-# load item
+print('Loaded garrtalent')
+
+# item
 items = {}
 item_to_filedata = {}
 with open(os.path.join(base_path, 'item.csv'), newline='') as csvfile:
@@ -193,7 +175,7 @@ with open(os.path.join(base_path, 'item.csv'), newline='') as csvfile:
 
 print('Loaded item')
 
-# load itemappearance
+# itemappearance
 appearance_to_filedata = {}
 with open(os.path.join(base_path, 'itemappearance.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -208,7 +190,7 @@ with open(os.path.join(base_path, 'itemappearance.csv'), newline='') as csvfile:
 
 print('Loaded itemappearance')
 
-# load itemmodifiedappearance
+# itemmodifiedappearance
 item_modified_appearances = {}
 
 with open(os.path.join(base_path, 'itemmodifiedappearance.csv'), newline='') as csvfile:
@@ -248,7 +230,16 @@ for item_id, imas in item_modified_appearances.items():
 
 print('Loaded itemmodifiedappearance')
 
-# load spellitemenchantment
+# keystoneaffix
+affixes = {}
+with open(os.path.join(base_path, 'keystoneaffix.csv'), newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        affixes.setdefault(int(row['FiledataID']), []).append(int(row['ID']))
+
+print('Loaded keystoneaffix')
+
+# spellitemenchantment
 enchantments = {}
 with open(os.path.join(base_path, 'spellitemenchantment.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -257,7 +248,26 @@ with open(os.path.join(base_path, 'spellitemenchantment.csv'), newline='') as cs
 
 print('Loaded spellitemenchantment')
 
-# load toy
+# spellmisc
+spells = {}
+spell_to_filedata = {}
+with open(os.path.join(base_path, 'spellmisc.csv'), newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        spell_id = int(row['SpellID'])
+        if spell_id == 0:
+            continue
+        
+        filedata_id = int(row['SpellIconFileDataID'])
+        if filedata_id == 0:
+            continue
+
+        spells.setdefault(filedata_id, []).append(spell_id)
+        spell_to_filedata[spell_id] = filedata_id
+
+print('Loaded spellmisc')
+
+# toy
 toys = {}
 with open(os.path.join(base_path, 'toy.csv'), newline='') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -268,6 +278,43 @@ with open(os.path.join(base_path, 'toy.csv'), newline='') as csvfile:
 
 print('Loaded toy')
 
+# traitdefinition
+trait_definitions = {}
+with open(os.path.join(base_path, 'traitdefinition.csv'), newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        trait_definition_id = int(row['ID'])
+        override_icon = int(row['OverrideIcon'])
+        spell_id = int(row['SpellID'])
+        visible_spell_id = int(row['VisibleSpellID'])
+
+        if spell_id or override_icon or visible_spell_id:
+            trait_definitions[trait_definition_id] = [spell_id, override_icon, visible_spell_id]
+
+print('Loaded traitdefinition')
+
+# traitnodeentry
+trait_nodes = {}
+with open(os.path.join(base_path, 'traitnodeentry.csv'), newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        trait_node_id = int(row['ID'])
+        trait_definition_id = int(row['TraitDefinitionID'])
+        if trait_definition_id not in trait_definitions:
+            continue
+
+        spell_id, override_icon, visible_spell_id = trait_definitions[int(row['TraitDefinitionID'])]
+
+        if override_icon:
+            trait_nodes.setdefault(override_icon, []).append(trait_node_id)
+        elif visible_spell_id and visible_spell_id in spell_to_filedata:
+            trait_nodes.setdefault(spell_to_filedata[visible_spell_id], []).append(trait_node_id)
+        elif spell_id in spell_to_filedata:
+            trait_nodes.setdefault(spell_to_filedata[spell_id], []).append(trait_node_id)
+
+print('Loaded traitnodeentry')
+
+
 # load filedata
 filedata = {}
 with open(os.path.join(base_path, 'manifestinterfacedata.csv'), newline='') as csvfile:
@@ -275,14 +322,17 @@ with open(os.path.join(base_path, 'manifestinterfacedata.csv'), newline='') as c
     for row in reader:
         id = int(row['ID'])
         if id in achievements or \
+            id in affixes or \
+            id in classes or \
             id in currencies or \
             id in enchantments or \
             id in garrtalents or \
+            id in items or \
             id in pets or \
             id in specs or \
             id in spells or \
             id in toys or \
-            id in items:
+            id in trait_nodes:
             filedata[id] = row['FileName'].lower()
 
 print('Found %d valid filedatas' % len(filedata))
@@ -361,3 +411,6 @@ for filedata_id in filedata:
 
         if filedata_id in spells:
             maybe_save(spells[filedata_id], resized, size_str, 'spell')
+        
+        if filedata_id in trait_nodes:
+            maybe_save(trait_nodes[filedata_id], resized, size_str, 'trait-node')
