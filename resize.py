@@ -87,7 +87,7 @@ for filename in sorted(os.listdir('raw')):
         sizePath = os.path.join(str(size), filename)
         if not os.path.exists(sizePath):
             resized = im.copy()
-            resized.thumbnail((size, size), Image.ANTIALIAS)
+            resized.thumbnail((size, size), Image.Resampling.LANCZOS)
             resized.save(sizePath)
 
 
@@ -368,7 +368,7 @@ for filedata_id in filedata:
     try:
         im = Image.open(filepath)
         if im.size != (64, 64):
-            im.resize((64, 64), Image.ANTIALIAS)
+            im.resize((64, 64), Image.Resampling.LANCZOS)
 
         # source icons have a dumb border
         im = im.crop((4, 4, 60, 60))
@@ -378,7 +378,7 @@ for filedata_id in filedata:
 
     for size in SIZES:
         resized = im.copy()
-        resized.thumbnail((size, size), Image.ANTIALIAS)
+        resized.thumbnail((size, size), Image.Resampling.LANCZOS)
 
         size_str = str(size)
 
