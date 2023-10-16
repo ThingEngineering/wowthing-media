@@ -95,6 +95,9 @@ print('----')
 
 
 existing = {}
+
+existing['blp'] = set(os.listdir('blp'))
+
 for size in SIZES:
     s = str(size)
     existing[size] = set(os.listdir(s))
@@ -359,10 +362,14 @@ for filedata_id in filedata:
         print('Missing filedata: %s' % (filedata_id))
         continue
 
-    filepath = os.path.join('blp', filename)
-    if not os.path.exists(filepath):
+    pngname = f'{filename[:-4]}.png'
+    if pngname in existing['blp']:
+        filename = pngname
+    elif filename not in existing['blp']:
         print('Filedata %s missing file: %s' % (filedata_id, filename))
         continue
+
+    filepath = os.path.join('blp', filename)
 
     im = None
     try:
