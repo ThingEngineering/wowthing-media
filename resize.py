@@ -2,10 +2,13 @@ import csv
 import multiprocessing
 import os
 import os.path
+import requests
+import shutil
 
 from PIL import Image
 
 
+DOWNLOAD_URL = 'http://localhost:59000/casc/fdid?fileDataID=%s&filename=%s'
 SIZES = [
     16,
     20,
@@ -127,6 +130,7 @@ if __name__ == '__main__':
     existing = {}
 
     existing['blp'] = set(os.listdir('blp'))
+    existing['decor'] = set(os.listdir('decor_raw'))
 
     for size in SIZES:
         s = str(size)
@@ -368,6 +372,7 @@ if __name__ == '__main__':
                 id in trait_nodes:
                 filedata[id] = row['FileName'].lower()
 
+
     print('Found %d valid filedatas' % len(filedata))
 
     # load listfile
@@ -380,6 +385,23 @@ if __name__ == '__main__':
                     filedata[id] = filepath.replace('interface/icons/', '')
                     print(f'listfile: {id} => {filedata[id]}')
 
+    # try to download any missing files from wow.tools.local
+    for id in items:
+        if id > 0 and id not in filedata:
+            maybe_filename = f'{id}.blp'
+            if maybe_filename not in existing['blp']:
+                url = DOWNLOAD_URL % (id, maybe_filename)
+                with requests.get(url, stream=True) as response:
+                    if response.status_code != 200:
+                        print(f'Download failed {maybe_filename} => {response.status_code}')
+                        continue
+
+                    print(f'Downloaded {maybe_filename}')
+                    blp_path = os.path.join('blp', maybe_filename)
+                    with open(blp_path, 'wb') as out_file:
+                        shutil.copyfileobj(response.raw, out_file)
+            
+            filedata[id] = maybe_filename
 
     global counter
     counter = multiprocessing.Value('i', 0)
@@ -391,13 +413,10 @@ if __name__ == '__main__':
             print('Missing filedata: %s' % (filedata_id))
             continue
 
-        pngname = f'{filename[:-4]}.png'
-        if pngname in existing['blp']:
-            filename = pngname
-        elif filename not in existing['blp']:
+        if filename not in existing['blp']:
             print('Filedata %s missing file: %s' % (filedata_id, filename))
             continue
-
+        
         filepath = os.path.join('blp', filename)
 
         save_as = []
@@ -436,57 +455,6 @@ if __name__ == '__main__':
             save_as.append(['trait-node', trait_nodes[filedata_id]])
 
         queue.append([filepath, save_as])
-
-        # im = None
-        # try:
-        #     im = Image.open(filepath)
-        #     if im.size != (64, 64):
-        #         im.resize((64, 64), Image.Resampling.LANCZOS)
-
-        #     # source icons have a dumb border
-        #     im = im.crop((4, 4, 60, 60))
-        # except Exception as e:
-        #     print('!! UH OH !!', filepath, e)
-        #     continue
-
-        # for size in SIZES:
-        #     resized = im.copy()
-        #     resized.thumbnail((size, size), Image.Resampling.LANCZOS)
-
-        #     size_str = str(size)
-
-        #     if filedata_id in achievements:
-        #         maybe_save(achievements[filedata_id], resized, size_str, 'achievement')
-
-        #     if filedata_id in affixes:
-        #         maybe_save(affixes[filedata_id], resized, size_str, 'affix')
-
-        #     if filedata_id in classes:
-        #         maybe_save(classes[filedata_id], resized, size_str, 'class')
-
-        #     if filedata_id in currencies:
-        #         maybe_save(currencies[filedata_id], resized, size_str, 'currency')
-
-        #     if filedata_id in enchantments:
-        #         maybe_save(enchantments[filedata_id], resized, size_str, 'enchantment')
-
-        #     if filedata_id in garrtalents:
-        #         maybe_save(garrtalents[filedata_id], resized, size_str, 'garrison-talent')
-
-        #     if filedata_id in items:
-        #         maybe_save(items[filedata_id], resized, size_str, 'item')
-
-        #     if filedata_id in pets:
-        #         maybe_save(pets[filedata_id], resized, size_str, 'npc')
-
-        #     if filedata_id in specs:
-        #         maybe_save(specs[filedata_id], resized, size_str, 'spec')
-
-        #     if filedata_id in spells:
-        #         maybe_save(spells[filedata_id], resized, size_str, 'spell')
-            
-        #     if filedata_id in trait_nodes:
-        #         maybe_save(trait_nodes[filedata_id], resized, size_str, 'trait-node')
 
     count = 0
 
