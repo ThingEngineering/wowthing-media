@@ -3,6 +3,7 @@ import os
 import os.path
 import requests
 import shutil
+import subprocess
 
 from PIL import Image
 
@@ -16,10 +17,6 @@ def main():
     for p in ['decor', 'decor_raw']:
         if not os.path.isdir(p):
             os.mkdir(p)
-
-    for filename in os.listdir('decor'):
-        filepath = os.path.join('decor', filename)
-        os.remove(filepath)
 
     decor = {}
     with open(os.path.join(base_path, os.path.join(base_path), 'housedecor.csv'), newline='') as csvfile:
@@ -42,16 +39,43 @@ def main():
                 if response.status_code == 200:
                     with open(blp_path, 'wb') as out_file:
                         shutil.copyfileobj(response.raw, out_file)
+                else:
+                    print(response.status_code)
+                    continue
         
-        saved = None
+        saved_png = None
+        saved_webp = None
         for decor_id in decor_ids:
-            decor_path = os.path.join('decor', f'{decor_id}.png')
-            if saved:
-                os.symlink(saved, decor_path)
+            png_path = os.path.join('decor', f'{decor_id}.png')
+            webp_path = os.path.join('decor', f'{decor_id}.webp')
+            if saved_png:
+                if os.path.exists(png_path) and not os.path.islink(png_path):
+                    os.remove(png_path)
+                    os.symlink(saved_png, png_path)
+
+                if os.path.exists(webp_path) and not os.path.islink(webp_path):
+                    os.remove(webp_path)
+                    os.symlink(saved_webp, webp_path)
             else:
-                img = Image.open(blp_path)
-                img.save(decor_path)
-                saved = decor_path
+                if not os.path.exists(png_path):
+                    print(f'- creating {png_path}')
+                    img = Image.open(blp_path)
+                    img.save(png_path)
+                
+                if not os.path.exists(webp_path):
+                    print(f'- creating {webp_path}')
+                    subprocess.run([
+                        'cwebp',
+                        '-q',
+                        '85',
+                        '-quiet',
+                        png_path,
+                        '-o',
+                        webp_path,
+                    ])
+
+                saved_png = os.path.basename(png_path)
+                saved_webp = os.path.basename(webp_path)
 
 
 if __name__ == '__main__':
