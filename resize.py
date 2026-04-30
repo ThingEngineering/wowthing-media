@@ -352,67 +352,48 @@ if __name__ == '__main__':
     print('Loaded traitnodeentry')
 
 
-    # load filedata
-    filedata = {}
-    with open(os.path.join(base_path, 'manifestinterfacedata.csv'), newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            id = int(row['ID'])
-            if id in achievements or \
-                id in affixes or \
-                id in classes or \
-                id in currencies or \
-                id in enchantments or \
-                id in garrtalents or \
-                id in items or \
-                id in pets or \
-                id in specs or \
-                id in spells or \
-                id in toys or \
-                id in trait_nodes:
-                filedata[id] = row['FileName'].lower()
+    filedata_ids = set()
+    filedata_ids.update(
+        achievements.keys(),
+        affixes.keys(),
+        classes.keys(),
+        currencies.keys(),
+        enchantments.keys(),
+        garrtalents.keys(),
+        items.keys(),
+        pets.keys(),
+        specs.keys(),
+        spells.keys(),
+        toys.keys(),
+        trait_nodes.keys(),
+    )
 
-
-    print('Found %d valid filedatas' % len(filedata))
-
-    # load listfile
-    with open('listfile.csv', newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=';')
-        for id, filepath in reader:
-            id = int(id)
-            if id in achievements or id in currencies or id in pets or id in spells or id in toys or id in items:
-                if id not in filedata and filepath.startswith('interface/icons/') and filepath.endswith('.blp'):
-                    filedata[id] = filepath.replace('interface/icons/', '')
-                    print(f'listfile: {id} => {filedata[id]}')
+    print('Found %d filedata IDs' % len(filedata_ids))
 
     # try to download any missing files from wow.tools.local
-    for id in items:
-        if id > 0 and id not in filedata:
-            maybe_filename = f'{id}.blp'
-            if maybe_filename not in existing['blp']:
-                url = DOWNLOAD_URL % (id, maybe_filename)
-                with requests.get(url, stream=True) as response:
-                    if response.status_code != 200:
-                        print(f'Download failed {maybe_filename} => {response.status_code}')
-                        continue
+    for filedata_id in filedata_ids:
+        maybe_filename = f'{filedata_id}.blp'
+        if maybe_filename not in existing['blp']:
+            url = DOWNLOAD_URL % (filedata_id, maybe_filename)
+            print(url)
+            with requests.get(url, stream=True) as response:
+                if response.status_code != 200:
+                    print(f'Download failed {maybe_filename} => {response.status_code}')
+                    continue
 
-                    print(f'Downloaded {maybe_filename}')
-                    blp_path = os.path.join('blp', maybe_filename)
-                    with open(blp_path, 'wb') as out_file:
-                        shutil.copyfileobj(response.raw, out_file)
-            
-            filedata[id] = maybe_filename
+                blp_path = os.path.join('blp', maybe_filename)
+                with open(blp_path, 'wb') as out_file:
+                    shutil.copyfileobj(response.raw, out_file)
+
+                existing['blp'].add(maybe_filename)
+                print(f'Downloaded {maybe_filename}')
 
     global counter
     counter = multiprocessing.Value('i', 0)
-
     queue = []
-    for filedata_id in filedata:
-        filename = filedata.get(filedata_id)
-        if not filename:
-            print('Missing filedata: %s' % (filedata_id))
-            continue
-
+    
+    for filedata_id in filedata_ids:
+        filename = f'{filedata_id}.blp'
         if filename not in existing['blp']:
             print('Filedata %s missing file: %s' % (filedata_id, filename))
             continue
@@ -455,8 +436,6 @@ if __name__ == '__main__':
             save_as.append(['trait-node', trait_nodes[filedata_id]])
 
         queue.append([filepath, save_as])
-
-    count = 0
 
     with multiprocessing.Pool() as pool:
         pool.starmap(resize_and_save, queue)
