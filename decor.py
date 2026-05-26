@@ -59,7 +59,11 @@ def main():
             else:
                 if not os.path.exists(png_path):
                     print(f'- creating {png_path}')
-                    img = Image.open(blp_path)
+                    try:
+                        img = Image.open(blp_path)
+                    except Exception as e:
+                        print(f'-- KABOOM: {e}')
+                        continue
                     img.save(png_path)
                 
                 if not os.path.exists(webp_path):
